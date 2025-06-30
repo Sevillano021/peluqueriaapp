@@ -165,7 +165,9 @@ async def crear_reserva(reserva: ReservaCreate):
     try:
         result = reservas_collection.insert_one(nueva_reserva)
         if result.inserted_id:
-            return {"message": "Reserva creada exitosamente", "reserva": nueva_reserva}
+            # Return the reservation without MongoDB-specific fields
+            reserva_response = nueva_reserva.copy()
+            return {"message": "Reserva creada exitosamente", "reserva": reserva_response}
         else:
             raise HTTPException(status_code=500, detail="Error al crear la reserva")
     except Exception as e:
