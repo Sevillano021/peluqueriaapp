@@ -1,11 +1,13 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from pymongo import MongoClient
 from datetime import datetime, timedelta
 from typing import Optional, List
 import os
 import uuid
+import json
 
 # Configuración de MongoDB
 MONGO_URL = os.environ.get('MONGO_URL', 'mongodb://localhost:27017/')
