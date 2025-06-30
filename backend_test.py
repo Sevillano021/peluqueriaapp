@@ -172,6 +172,7 @@ class HairSalonAPITest:
         )
         
         if not self.assert_equal(response.status_code, 200, "Create reservation should return 200"):
+            print(f"Error response: {response.text}")
             return False
             
         data = response.json()
