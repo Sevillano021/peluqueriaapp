@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import json
 
 class HairSalonAPITest(unittest.TestCase):
-    def setUp(self):
+    def __init__(self):
         # Get the backend URL from the frontend .env file
         self.base_url = "https://2870ef80-ebfa-490a-b2a2-a59b088def1e.preview.emergentagent.com"
         self.api_prefix = "/api"
