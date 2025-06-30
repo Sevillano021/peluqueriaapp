@@ -1,38 +1,198 @@
-.App {
-    text-align: center;
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* Custom styles for the hair salon app */
+.gradient-bg {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+.hero-overlay {
+  background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5));
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+/* Smooth transitions */
+* {
+  transition: all 0.2s ease-in-out;
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+/* Custom button hover effects */
+.btn-primary {
+  @apply bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-200;
 }
 
-.App-link {
-    color: #61dafb;
+.btn-secondary {
+  @apply bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700 transition duration-200;
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+/* Custom form styles */
+.form-input {
+  @apply w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+}
+
+/* Service card hover effects */
+.service-card {
+  @apply transform hover:scale-105 transition duration-300;
+}
+
+/* Loading animation */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Responsive design helpers */
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: 2.5rem;
+  }
+  
+  .hero-subtitle {
+    font-size: 1.2rem;
+  }
+}
+
+/* Step indicator styles */
+.step-indicator {
+  @apply w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold;
+}
+
+.step-active {
+  @apply bg-blue-600 text-white;
+}
+
+.step-inactive {
+  @apply bg-gray-300 text-gray-600;
+}
+
+.step-line {
+  @apply flex-1 h-1 mx-2;
+}
+
+.step-line-active {
+  @apply bg-blue-600;
+}
+
+.step-line-inactive {
+  @apply bg-gray-300;
+}
+
+/* Confirmation modal styles */
+.confirmation-checkmark {
+  @apply w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6;
+}
+
+/* Service grid layout */
+.services-grid {
+  @apply grid md:grid-cols-3 gap-8;
+}
+
+.service-image {
+  @apply w-full h-48 object-cover rounded-lg mb-4;
+}
+
+/* Time slot buttons */
+.time-slot {
+  @apply p-3 rounded-lg border-2 text-center transition duration-200 cursor-pointer;
+}
+
+.time-slot-selected {
+  @apply border-blue-600 bg-blue-50;
+}
+
+.time-slot-available {
+  @apply border-gray-200 hover:border-gray-300;
+}
+
+/* Professional styling for the reservation form */
+.reservation-form {
+  @apply bg-white rounded-2xl shadow-2xl overflow-hidden;
+}
+
+.form-section {
+  @apply p-6;
+}
+
+.progress-section {
+  @apply bg-gray-50 px-6 py-4;
+}
+
+/* Elegant buttons for service selection */
+.service-button {
+  @apply p-4 rounded-lg border-2 text-left transition duration-200 cursor-pointer;
+}
+
+.service-button-selected {
+  @apply border-blue-600 bg-blue-50;
+}
+
+.service-button-unselected {
+  @apply border-gray-200 hover:border-gray-300;
+}
+
+/* Stylist selection buttons */
+.stylist-button {
+  @apply p-3 rounded-lg border-2 text-center transition duration-200 cursor-pointer;
+}
+
+.stylist-button-selected {
+  @apply border-blue-600 bg-blue-50;
+}
+
+.stylist-button-unselected {
+  @apply border-gray-200 hover:border-gray-300;
+}
+
+/* Enhanced focus states */
+.form-input:focus {
+  @apply outline-none ring-2 ring-blue-500 border-transparent;
+}
+
+/* Loading states */
+.loading-spinner {
+  @apply animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto;
+}
+
+/* Success confirmation styles */
+.success-icon {
+  @apply w-8 h-8 text-green-600;
+}
+
+/* Responsive text sizing */
+@media (max-width: 640px) {
+  .hero-title {
+    font-size: 2rem;
+  }
+  
+  .services-grid {
+    @apply grid-cols-1;
+  }
+}
+
+/* Dark theme elements */
+.dark-gradient {
+  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
 }

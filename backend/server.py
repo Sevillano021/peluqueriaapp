@@ -1,75 +1,192 @@
-from fastapi import FastAPI, APIRouter
-from dotenv import load_dotenv
-from starlette.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from pymongo import MongoClient
+from datetime import datetime, timedelta
+from typing import Optional, List
 import os
-import logging
-from pathlib import Path
-from pydantic import BaseModel, Field
-from typing import List
 import uuid
-from datetime import datetime
 
+# Configuración de MongoDB
+MONGO_URL = os.environ.get('MONGO_URL', 'mongodb://localhost:27017/')
+client = MongoClient(MONGO_URL)
+db = client.peluqueria
+reservas_collection = db.reservas
 
-ROOT_DIR = Path(__file__).parent
-load_dotenv(ROOT_DIR / '.env')
-
-# MongoDB connection
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
-
-# Create the main app without a prefix
 app = FastAPI()
 
-# Create a router with the /api prefix
-api_router = APIRouter(prefix="/api")
-
-
-# Define Models
-class StatusCheck(BaseModel):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    client_name: str
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
-
-class StatusCheckCreate(BaseModel):
-    client_name: str
-
-# Add your routes to the router instead of directly to app
-@api_router.get("/")
-async def root():
-    return {"message": "Hello World"}
-
-@api_router.post("/status", response_model=StatusCheck)
-async def create_status_check(input: StatusCheckCreate):
-    status_dict = input.dict()
-    status_obj = StatusCheck(**status_dict)
-    _ = await db.status_checks.insert_one(status_obj.dict())
-    return status_obj
-
-@api_router.get("/status", response_model=List[StatusCheck])
-async def get_status_checks():
-    status_checks = await db.status_checks.find().to_list(1000)
-    return [StatusCheck(**status_check) for status_check in status_checks]
-
-# Include the router in the main app
-app.include_router(api_router)
-
+# Configuración de CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_credentials=True,
     allow_origins=["*"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+# Modelos Pydantic
+class ReservaCreate(BaseModel):
+    cliente_nombre: str
+    cliente_telefono: str
+    cliente_email: Optional[str] = None
+    servicio: str
+    peluquero: str
+    fecha: str  # formato YYYY-MM-DD
+    hora: str   # formato HH:MM
 
-@app.on_event("shutdown")
-async def shutdown_db_client():
-    client.close()
+class Reserva(BaseModel):
+    id: str
+    cliente_nombre: str
+    cliente_telefono: str
+    cliente_email: Optional[str] = None
+    servicio: str
+    peluquero: str
+    fecha: str
+    hora: str
+    estado: str = "confirmada"
+    fecha_creacion: str
+
+# Datos de configuración
+PELUQUEROS = ["Andrés", "Alejandro", "Adrián"]
+SERVICIOS = [
+    {"nombre": "Corte de cabello", "duracion": 30, "precio": 15},
+    {"nombre": "Arreglo de barba", "duracion": 20, "precio": 10},
+    {"nombre": "Tinte", "duracion": 90, "precio": 45},
+    {"nombre": "Corte mujer", "duracion": 45, "precio": 25},
+    {"nombre": "Peinado", "duracion": 30, "precio": 20},
+    {"nombre": "Mechas", "duracion": 120, "precio": 60}
+]
+
+HORARIOS = {
+    "lunes": {"inicio": "10:00", "fin": "19:00"},
+    "martes": {"inicio": "10:00", "fin": "19:00"},
+    "miercoles": {"inicio": "10:00", "fin": "19:00"},
+    "jueves": {"inicio": "10:00", "fin": "19:00"},
+    "viernes": {"inicio": "10:00", "fin": "19:00"},
+    "sabado": {"inicio": "10:00", "fin": "14:00"}
+}
+
+def generar_horarios_disponibles(fecha: str, peluquero: str):
+    """Genera horarios disponibles para una fecha y peluquero específico"""
+    try:
+        fecha_obj = datetime.strptime(fecha, "%Y-%m-%d")
+        day_name = fecha_obj.strftime("%A").lower()
+        
+        # Mapear nombres de días al español
+        dias_semana = {
+            "monday": "lunes",
+            "tuesday": "martes", 
+            "wednesday": "miercoles",
+            "thursday": "jueves",
+            "friday": "viernes",
+            "saturday": "sabado",
+            "sunday": "domingo"
+        }
+        
+        dia_esp = dias_semana.get(day_name)
+        
+        if dia_esp not in HORARIOS:
+            return []
+        
+        horario = HORARIOS[dia_esp]
+        inicio = datetime.strptime(horario["inicio"], "%H:%M")
+        fin = datetime.strptime(horario["fin"], "%H:%M")
+        
+        # Generar slots cada 30 minutos
+        horarios = []
+        current = inicio
+        while current < fin:
+            horarios.append(current.strftime("%H:%M"))
+            current += timedelta(minutes=30)
+        
+        # Filtrar horarios ya ocupados
+        reservas_existentes = list(reservas_collection.find({
+            "fecha": fecha,
+            "peluquero": peluquero
+        }))
+        
+        horarios_ocupados = [r["hora"] for r in reservas_existentes]
+        horarios_disponibles = [h for h in horarios if h not in horarios_ocupados]
+        
+        return horarios_disponibles
+        
+    except Exception as e:
+        return []
+
+@app.get("/api/")
+async def root():
+    return {"message": "API Peluquería funcionando correctamente"}
+
+@app.get("/api/servicios")
+async def get_servicios():
+    return {"servicios": SERVICIOS}
+
+@app.get("/api/peluqueros")
+async def get_peluqueros():
+    return {"peluqueros": PELUQUEROS}
+
+@app.get("/api/horarios-disponibles/{fecha}/{peluquero}")
+async def get_horarios_disponibles(fecha: str, peluquero: str):
+    if peluquero not in PELUQUEROS:
+        raise HTTPException(status_code=400, detail="Peluquero no válido")
+    
+    horarios = generar_horarios_disponibles(fecha, peluquero)
+    return {"horarios": horarios}
+
+@app.post("/api/reservas")
+async def crear_reserva(reserva: ReservaCreate):
+    # Validaciones
+    if reserva.peluquero not in PELUQUEROS:
+        raise HTTPException(status_code=400, detail="Peluquero no válido")
+    
+    servicios_validos = [s["nombre"] for s in SERVICIOS]
+    if reserva.servicio not in servicios_validos:
+        raise HTTPException(status_code=400, detail="Servicio no válido")
+    
+    # Verificar disponibilidad del horario
+    horarios_disponibles = generar_horarios_disponibles(reserva.fecha, reserva.peluquero)
+    if reserva.hora not in horarios_disponibles:
+        raise HTTPException(status_code=400, detail="Horario no disponible")
+    
+    # Crear la reserva
+    nueva_reserva = {
+        "id": str(uuid.uuid4()),
+        "cliente_nombre": reserva.cliente_nombre,
+        "cliente_telefono": reserva.cliente_telefono,
+        "cliente_email": reserva.cliente_email,
+        "servicio": reserva.servicio,
+        "peluquero": reserva.peluquero,
+        "fecha": reserva.fecha,
+        "hora": reserva.hora,
+        "estado": "confirmada",
+        "fecha_creacion": datetime.now().isoformat()
+    }
+    
+    try:
+        result = reservas_collection.insert_one(nueva_reserva)
+        if result.inserted_id:
+            return {"message": "Reserva creada exitosamente", "reserva": nueva_reserva}
+        else:
+            raise HTTPException(status_code=500, detail="Error al crear la reserva")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error de base de datos: {str(e)}")
+
+@app.get("/api/reservas")
+async def get_reservas():
+    try:
+        reservas = list(reservas_collection.find({}, {"_id": 0}).sort("fecha", 1).sort("hora", 1))
+        return {"reservas": reservas}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al obtener reservas: {str(e)}")
+
+@app.get("/api/reservas/{fecha}")
+async def get_reservas_fecha(fecha: str):
+    try:
+        reservas = list(reservas_collection.find({"fecha": fecha}, {"_id": 0}).sort("hora", 1))
+        return {"reservas": reservas}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al obtener reservas: {str(e)}")
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8001)
