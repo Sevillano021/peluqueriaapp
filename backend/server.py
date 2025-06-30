@@ -165,12 +165,12 @@ async def crear_reserva(reserva: ReservaCreate):
     try:
         result = reservas_collection.insert_one(nueva_reserva)
         if result.inserted_id:
-            # Return the reservation without MongoDB-specific fields
-            reserva_response = nueva_reserva.copy()
-            return {"message": "Reserva creada exitosamente", "reserva": reserva_response}
+            # Return only the original data we created, not what MongoDB stored
+            return {"message": "Reserva creada exitosamente", "reserva": nueva_reserva}
         else:
             raise HTTPException(status_code=500, detail="Error al crear la reserva")
     except Exception as e:
+        print(f"Error creating reservation: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error de base de datos: {str(e)}")
 
 @app.get("/api/reservas")
