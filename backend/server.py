@@ -150,30 +150,51 @@ async def crear_reserva(reserva: ReservaCreate):
     if reserva.hora not in horarios_disponibles:
         raise HTTPException(status_code=400, detail="Horario no disponible")
     
-    # Crear la reserva
+    # Crear la reserva - solo datos simples sin objetos complejos
+    reserva_id = str(uuid.uuid4())
     nueva_reserva = {
-        "id": str(uuid.uuid4()),
-        "cliente_nombre": reserva.cliente_nombre,
-        "cliente_telefono": reserva.cliente_telefono,
-        "cliente_email": reserva.cliente_email,
-        "servicio": reserva.servicio,
-        "peluquero": reserva.peluquero,
-        "fecha": reserva.fecha,
-        "hora": reserva.hora,
+        "id": reserva_id,
+        "cliente_nombre": str(reserva.cliente_nombre),
+        "cliente_telefono": str(reserva.cliente_telefono),
+        "cliente_email": str(reserva.cliente_email) if reserva.cliente_email else None,
+        "servicio": str(reserva.servicio),
+        "peluquero": str(reserva.peluquero),
+        "fecha": str(reserva.fecha),
+        "hora": str(reserva.hora),
         "estado": "confirmada",
         "fecha_creacion": datetime.now().isoformat()
     }
     
     try:
+        # Insertar en MongoDB
         result = reservas_collection.insert_one(nueva_reserva)
+        
         if result.inserted_id:
-            # Return only the original data we created, not what MongoDB stored
-            return {"message": "Reserva creada exitosamente", "reserva": nueva_reserva}
+            # Crear respuesta limpia sin ObjectId
+            reserva_respuesta = {
+                "id": reserva_id,
+                "cliente_nombre": nueva_reserva["cliente_nombre"],
+                "cliente_telefono": nueva_reserva["cliente_telefono"],
+                "cliente_email": nueva_reserva["cliente_email"],
+                "servicio": nueva_reserva["servicio"],
+                "peluquero": nueva_reserva["peluquero"],
+                "fecha": nueva_reserva["fecha"],
+                "hora": nueva_reserva["hora"],
+                "estado": nueva_reserva["estado"],
+                "fecha_creacion": nueva_reserva["fecha_creacion"]
+            }
+            
+            return {
+                "message": "Reserva creada exitosamente", 
+                "reserva": reserva_respuesta
+            }
         else:
             raise HTTPException(status_code=500, detail="Error al crear la reserva")
+            
     except Exception as e:
         print(f"Error creating reservation: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error de base de datos: {str(e)}")
+        print(f"Reservation data: {nueva_reserva}")
+        raise HTTPException(status_code=500, detail=f"Error de base de datos: {str(e)[:100]}")
 
 @app.get("/api/reservas")
 async def get_reservas():
