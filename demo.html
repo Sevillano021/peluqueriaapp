@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏪 Peluquería Deluxe - Sistema de Gestión Completo</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .nav-link.active {
+            background-color: #3b82f6;
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Simulamos el backend con datos de ejemplo
+        const mockData = {
+            estadisticas: {
+                reservas_hoy: 8,
+                ingresos_hoy: 340,
+                gastos_mes: 2450,
+                productos_bajo_stock: 3,
+                empleados_activos: 3,
+                ganancia_mes: 8750
+            },
+            reservas: [
+                {
+                    id: "1",
+                    cliente_nombre: "María García",
+                    cliente_telefono: "123456789",
+                    servicio: "Corte de cabello",
+                    peluquero: "Andrés",
+                    fecha: "2025-07-01",
+                    hora: "10:00",
+                    estado: "confirmada"
+                },
+                {
+                    id: "2",
+                    cliente_nombre: "Juan Pérez",
+                    cliente_telefono: "987654321",
+                    servicio: "Corte y barba",
+                    peluquero: "Alejandro",
+                    fecha: "2025-07-01",
+                    hora: "11:30",
+                    estado: "confirmada"
+                }
+            ],
+            proveedores: [
+                {
+                    id: "1",
+                    nombre: "Distribuidora Belleza S.L.",
+                    contacto: "Ana López",
+                    telefono: "600123456",
+                    email: "ana@distribuidora.com",
+                    categoria: "Productos capilares"
+                }
+            ],
+            gastos: [
+                {
+                    id: "1",
+                    concepto: "Compra shampoos",
+                    categoria: "Productos",
+                    monto: 150,
+                    fecha: "2025-07-01",
+                    metodo_pago: "transferencia"
+                }
+            ],
+            inventario: [
+                {
+                    id: "1",
+                    nombre: "Shampoo Professional",
+                    categoria: "Cuidado capilar",
+                    stock_actual: 5,
+                    stock_minimo: 10,
+                    precio_compra: 12.50,
+                    precio_venta: 25.00
+                }
+            ],
+            empleados: [
+                {
+                    id: "1",
+                    nombre: "Andrés Martínez",
+                    telefono: "666111222",
+                    email: "andres@peluqueria.com",
+                    puesto: "Peluquero Senior",
+                    salario: 1500,
+                    estado: "activo"
+                },
+                {
+                    id: "2",
+                    nombre: "Alejandro Ruiz",
+                    telefono: "666333444",
+                    email: "alejandro@peluqueria.com",
+                    puesto: "Peluquero",
+                    salario: 1300,
+                    estado: "activo"
+                },
+                {
+                    id: "3",
+                    nombre: "Adrián García",
+                    telefono: "666555666",
+                    email: "adrian@peluqueria.com",
+                    puesto: "Peluquero",
+                    salario: 1200,
+                    estado: "activo"
+                }
+            ]
+        };
+
+        function App() {
+            const [view, setView] = useState('client');
+            const [activeTab, setActiveTab] = useState('dashboard');
+
+            const ClientView = () => (
+                <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+                    {/* Navegación */}
+                    <nav className="bg-white shadow-sm p-4">
+                        <div className="max-w-6xl mx-auto flex justify-between items-center">
+                            <h1 className="text-3xl font-bold text-gray-800">🏪 Peluquería Deluxe</h1>
+                            <button 
+                                onClick={() => setView('admin')}
+                                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition duration-200"
+                            >
+                                Panel Administrador
+                            </button>
+                        </div>
+                    </nav>
+
+                    {/* Hero Section */}
+                    <div className="relative h-96 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="text-center">
+                                <h1 className="text-5xl font-bold mb-4">Peluquería Élite</h1>
+                                <p className="text-xl mb-8">Tu estilo, nuestra pasión</p>
+                                <p className="text-lg">Andrés • Alejandro • Adrián</p>
+                                <button className="mt-8 bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition duration-200">
+                                    Reservar Cita
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Servicios */}
+                    <div className="py-16 px-4">
+                        <div className="max-w-6xl mx-auto">
+                            <h2 className="text-3xl font-bold text-center mb-12">Nuestros Servicios</h2>
+                            <div className="grid md:grid-cols-3 gap-8">
+                                <div className="bg-white rounded-lg p-6 shadow-lg">
+                                    <h3 className="text-xl font-semibold mb-4">Corte de Cabello</h3>
+                                    <p className="text-gray-600 mb-4">Cortes modernos y clásicos para hombres y mujeres</p>
+                                    <p className="text-2xl font-bold text-blue-600">15€ - 25€</p>
+                                </div>
+                                <div className="bg-white rounded-lg p-6 shadow-lg">
+                                    <h3 className="text-xl font-semibold mb-4">Tratamientos Capilares</h3>
+                                    <p className="text-gray-600 mb-4">Tintes, mechas y cuidados especializados</p>
+                                    <p className="text-2xl font-bold text-blue-600">45€ - 60€</p>
+                                </div>
+                                <div className="bg-white rounded-lg p-6 shadow-lg">
+                                    <h3 className="text-xl font-semibold mb-4">Arreglo de Barba</h3>
+                                    <p className="text-gray-600 mb-4">Diseño y mantenimiento profesional</p>
+                                    <p className="text-2xl font-bold text-blue-600">10€ - 20€</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="bg-gray-800 text-white py-8">
+                        <div className="max-w-4xl mx-auto px-4 text-center">
+                            <h3 className="text-2xl font-bold mb-4">Horarios de Atención</h3>
+                            <div className="grid md:grid-cols-2 gap-4">
+                                <div>
+                                    <p className="text-lg"><strong>Lunes a Viernes:</strong> 10:00 - 19:00</p>
+                                </div>
+                                <div>
+                                    <p className="text-lg"><strong>Sábados:</strong> 10:00 - 14:00</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            const AdminView = () => (
+                <div className="min-h-screen bg-gray-50">
+                    {/* Navegación Admin */}
+                    <nav className="bg-white shadow-sm p-4">
+                        <div className="max-w-7xl mx-auto flex justify-between items-center">
+                            <h1 className="text-3xl font-bold text-gray-800">🔧 Panel de Administración</h1>
+                            <button 
+                                onClick={() => setView('client')}
+                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-200"
+                            >
+                                ← Volver al Cliente
+                            </button>
+                        </div>
+                    </nav>
+
+                    {/* Tabs */}
+                    <div className="bg-white border-b">
+                        <div className="max-w-7xl mx-auto">
+                            <nav className="flex space-x-8 px-4">
+                                {[
+                                    { id: 'dashboard', name: '📊 Dashboard', icon: '📊' },
+                                    { id: 'reservas', name: '📅 Reservas', icon: '📅' },
+                                    { id: 'proveedores', name: '🏢 Proveedores', icon: '🏢' },
+                                    { id: 'gastos', name: '💰 Gastos', icon: '💰' },
+                                    { id: 'inventario', name: '📦 Inventario', icon: '📦' },
+                                    { id: 'empleados', name: '👥 Empleados', icon: '👥' }
+                                ].map((tab) => (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => setActiveTab(tab.id)}
+                                        className={`py-4 px-2 border-b-2 font-medium text-sm ${
+                                            activeTab === tab.id
+                                                ? 'border-blue-500 text-blue-600'
+                                                : 'border-transparent text-gray-500 hover:text-gray-700'
+                                        }`}
+                                    >
+                                        {tab.name}
+                                    </button>
+                                ))}
+                            </nav>
+                        </div>
+                    </div>
+
+                    {/* Contenido */}
+                    <div className="max-w-7xl mx-auto p-6">
+                        {activeTab === 'dashboard' && <DashboardTab />}
+                        {activeTab === 'reservas' && <ReservasTab />}
+                        {activeTab === 'proveedores' && <ProveedoresTab />}
+                        {activeTab === 'gastos' && <GastosTab />}
+                        {activeTab === 'inventario' && <InventarioTab />}
+                        {activeTab === 'empleados' && <EmpleadosTab />}
+                    </div>
+                </div>
+            );
+
+            const DashboardTab = () => (
+                <div className="space-y-6">
+                    <h2 className="text-2xl font-bold text-gray-800">Resumen General</h2>
+                    
+                    {/* Estadísticas */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="bg-white p-6 rounded-lg shadow">
+                            <div className="flex items-center">
+                                <div className="p-2 bg-blue-100 rounded-lg">
+                                    <span className="text-2xl">📅</span>
+                                </div>
+                                <div className="ml-4">
+                                    <p className="text-sm text-gray-600">Reservas Hoy</p>
+                                    <p className="text-2xl font-bold text-gray-800">{mockData.estadisticas.reservas_hoy}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white p-6 rounded-lg shadow">
+                            <div className="flex items-center">
+                                <div className="p-2 bg-green-100 rounded-lg">
+                                    <span className="text-2xl">💰</span>
+                                </div>
+                                <div className="ml-4">
+                                    <p className="text-sm text-gray-600">Ingresos Hoy</p>
+                                    <p className="text-2xl font-bold text-gray-800">{mockData.estadisticas.ingresos_hoy}€</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white p-6 rounded-lg shadow">
+                            <div className="flex items-center">
+                                <div className="p-2 bg-red-100 rounded-lg">
+                                    <span className="text-2xl">📉</span>
+                                </div>
+                                <div className="ml-4">
+                                    <p className="text-sm text-gray-600">Gastos Mes</p>
+                                    <p className="text-2xl font-bold text-gray-800">{mockData.estadisticas.gastos_mes}€</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white p-6 rounded-lg shadow">
+                            <div className="flex items-center">
+                                <div className="p-2 bg-yellow-100 rounded-lg">
+                                    <span className="text-2xl">⚠️</span>
+                                </div>
+                                <div className="ml-4">
+                                    <p className="text-sm text-gray-600">Productos Bajo Stock</p>
+                                    <p className="text-2xl font-bold text-gray-800">{mockData.estadisticas.productos_bajo_stock}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white p-6 rounded-lg shadow">
+                            <div className="flex items-center">
+                                <div className="p-2 bg-purple-100 rounded-lg">
+                                    <span className="text-2xl">👥</span>
+                                </div>
+                                <div className="ml-4">
+                                    <p className="text-sm text-gray-600">Empleados Activos</p>
+                                    <p className="text-2xl font-bold text-gray-800">{mockData.estadisticas.empleados_activos}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white p-6 rounded-lg shadow">
+                            <div className="flex items-center">
+                                <div className="p-2 bg-indigo-100 rounded-lg">
+                                    <span className="text-2xl">📈</span>
+                                </div>
+                                <div className="ml-4">
+                                    <p className="text-sm text-gray-600">Ganancia Mes</p>
+                                    <p className="text-2xl font-bold text-gray-800">{mockData.estadisticas.ganancia_mes}€</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Alertas */}
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <h3 className="font-semibold text-yellow-800 mb-2">⚠️ Alertas del Sistema</h3>
+                        <ul className="text-yellow-700 space-y-1">
+                            <li>• {mockData.estadisticas.productos_bajo_stock} productos tienen stock bajo mínimo</li>
+                            <li>• Próximo pago de nóminas en 5 días</li>
+                        </ul>
+                    </div>
+                </div>
+            );
+
+            const ReservasTab = () => (
+                <div className="space-y-6">
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-2xl font-bold text-gray-800">Gestión de Reservas</h2>
+                        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                            + Nueva Reserva
+                        </button>
+                    </div>
+                    
+                    <div className="bg-white rounded-lg shadow overflow-hidden">
+                        <table className="min-w-full">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cliente</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Servicio</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Peluquero</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha/Hora</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200">
+                                {mockData.reservas.map((reserva) => (
+                                    <tr key={reserva.id}>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div>
+                                                <div className="text-sm font-medium text-gray-900">{reserva.cliente_nombre}</div>
+                                                <div className="text-sm text-gray-500">{reserva.cliente_telefono}</div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{reserva.servicio}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{reserva.peluquero}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {reserva.fecha} {reserva.hora}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                                {reserva.estado}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <button className="text-blue-600 hover:text-blue-900 mr-2">Editar</button>
+                                            <button className="text-red-600 hover:text-red-900">Cancelar</button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            );
+
+            const ProveedoresTab = () => (
+                <div className="space-y-6">
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-2xl font-bold text-gray-800">Gestión de Proveedores</h2>
+                        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                            + Nuevo Proveedor
+                        </button>
+                    </div>
+                    
+                    <div className="bg-white rounded-lg shadow overflow-hidden">
+                        <table className="min-w-full">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Empresa</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Contacto</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Categoría</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200">
+                                {mockData.proveedores.map((proveedor) => (
+                                    <tr key={proveedor.id}>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="text-sm font-medium text-gray-900">{proveedor.nombre}</div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="text-sm text-gray-900">{proveedor.contacto}</div>
+                                            <div className="text-sm text-gray-500">{proveedor.telefono}</div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{proveedor.categoria}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <button className="text-blue-600 hover:text-blue-900 mr-2">Editar</button>
+                                            <button className="text-red-600 hover:text-red-900">Eliminar</button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            );
+
+            const GastosTab = () => (
+                <div className="space-y-6">
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-2xl font-bold text-gray-800">Gestión de Gastos</h2>
+                        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                            + Registrar Gasto
+                        </button>
+                    </div>
+                    
+                    <div className="bg-white rounded-lg shadow overflow-hidden">
+                        <table className="min-w-full">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Concepto</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Categoría</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Monto</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Método Pago</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200">
+                                {mockData.gastos.map((gasto) => (
+                                    <tr key={gasto.id}>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{gasto.concepto}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{gasto.categoria}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{gasto.monto}€</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{gasto.fecha}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{gasto.metodo_pago}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <button className="text-red-600 hover:text-red-900">Eliminar</button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            );
+
+            const InventarioTab = () => (
+                <div className="space-y-6">
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-2xl font-bold text-gray-800">Gestión de Inventario</h2>
+                        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                            + Nuevo Producto
+                        </button>
+                    </div>
+                    
+                    <div className="bg-white rounded-lg shadow overflow-hidden">
+                        <table className="min-w-full">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Producto</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Categoría</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stock</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Precio Compra</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Precio Venta</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200">
+                                {mockData.inventario.map((producto) => (
+                                    <tr key={producto.id}>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{producto.nombre}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{producto.categoria}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className={`text-sm ${producto.stock_actual <= producto.stock_minimo ? 'text-red-600 font-bold' : 'text-gray-900'}`}>
+                                                {producto.stock_actual} / {producto.stock_minimo}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{producto.precio_compra}€</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{producto.precio_venta}€</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <button className="text-blue-600 hover:text-blue-900 mr-2">Editar</button>
+                                            <button className="text-red-600 hover:text-red-900">Eliminar</button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            );
+
+            const EmpleadosTab = () => (
+                <div className="space-y-6">
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-2xl font-bold text-gray-800">Gestión de Empleados</h2>
+                        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                            + Nuevo Empleado
+                        </button>
+                    </div>
+                    
+                    <div className="bg-white rounded-lg shadow overflow-hidden">
+                        <table className="min-w-full">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Puesto</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Contacto</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Salario</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200">
+                                {mockData.empleados.map((empleado) => (
+                                    <tr key={empleado.id}>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{empleado.nombre}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{empleado.puesto}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="text-sm text-gray-900">{empleado.telefono}</div>
+                                            <div className="text-sm text-gray-500">{empleado.email}</div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{empleado.salario}€</td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                                {empleado.estado}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <button className="text-blue-600 hover:text-blue-900 mr-2">Editar</button>
+                                            <button className="text-red-600 hover:text-red-900">Dar de Baja</button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            );
+
+            return view === 'client' ? <ClientView /> : <AdminView />;
+        }
+
+        // Renderizar la aplicación
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>

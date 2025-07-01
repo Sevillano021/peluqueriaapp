@@ -1,0 +1,26 @@
+{
+  "name": "pelu",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/Sevillano021/pelu#readme",
+  "bugs": {
+    "url": "https://github.com/Sevillano021/pelu/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sevillano021/pelu.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "start": "^5.1.0"
+  }
+}
