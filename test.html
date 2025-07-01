@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏪 Peluquería Deluxe - Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .container {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        h1 { font-size: 3em; margin-bottom: 20px; }
+        p { font-size: 1.2em; margin-bottom: 30px; }
+        .button {
+            display: inline-block;
+            background: white;
+            color: #667eea;
+            padding: 15px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            margin: 10px;
+            transition: transform 0.3s ease;
+        }
+        .button:hover { transform: scale(1.05); }
+        .status {
+            background: rgba(0,255,0,0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏪 Peluquería Deluxe</h1>
+        <div class="status">
+            <h2>✅ GitHub Pages está funcionando!</h2>
+            <p>Tu sistema está correctamente desplegado</p>
+        </div>
+        
+        <p>Sistema completo de gestión para peluquería con:</p>
+        <ul style="text-align: left; max-width: 400px; margin: 0 auto;">
+            <li>📅 Reservas online</li>
+            <li>🔧 Panel de administración</li>
+            <li>📊 Dashboard con métricas</li>
+            <li>💰 Control de gastos</li>
+            <li>📦 Gestión de inventario</li>
+            <li>👥 Gestión de empleados</li>
+        </ul>
+        
+        <div style="margin-top: 40px;">
+            <a href="index.html" class="button">🚀 Ver Demo Completa</a>
+            <a href="demo.html" class="button">📱 Demo Alternativa</a>
+        </div>
+        
+        <p style="margin-top: 30px; font-size: 0.9em; opacity: 0.8;">
+            <strong>Desarrollado con:</strong> React + FastAPI + MongoDB<br>
+            <strong>Deploy:</strong> GitHub Pages
+        </p>
+    </div>
+
+    <script>
+        // Redirigir automáticamente a la demo completa después de 5 segundos
+        setTimeout(() => {
+            window.location.href = 'index.html';
+        }, 5000);
+        
+        // Mostrar countdown
+        let countdown = 5;
+        const timer = setInterval(() => {
+            countdown--;
+            if (countdown > 0) {
+                document.title = `🏪 Redirigiendo en ${countdown}s...`;
+            } else {
+                clearInterval(timer);
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
