@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏪 Peluquería Deluxe - Sistema de Gestión Completo</title>
+    <meta name="description" content="Sistema completo de gestión para peluquería con reservas online y panel de administración">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏪</text></svg>">
+    
+    <!-- React y dependencias desde CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Configuración de Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'salon-blue': '#3b82f6',
+                        'salon-purple': '#8b5cf6'
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .nav-link.active {
+            background-color: #3b82f6;
+            color: white;
+        }
+        .hero-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            transition: all 0.3s ease;
+        }
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+    <!-- Loading -->
+    <div id="loading" class="fixed inset-0 bg-white flex items-center justify-center z-50">
+        <div class="text-center">
+            <div class="text-6xl mb-4 pulse-animation">🏪</div>
+            <div class="text-xl font-semibold text-gray-700">Cargando Peluquería Deluxe...</div>
+        </div>
+    </div>
+    
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Datos de demostración
+        const mockData = {
+            estadisticas: {
+                reservas_hoy: 12,
+                ingresos_hoy: 485,
+                gastos_mes: 3250,
+                productos_bajo_stock: 4,
+                empleados_activos: 3,
+                ganancia_mes: 12780
+            },
+            reservas: [
+                {
+                    id: "1",
+                    cliente_nombre: "María García López",
+                    cliente_telefono: "123-456-789",
+                    servicio: "Corte de cabello",
+                    peluquero: "Andrés",
+                    fecha: "2025-07-01",
+                    hora: "10:00",
+                    estado: "confirmada"
+                },
+                {
+                    id: "2",
+                    cliente_nombre: "Juan Pérez Rodríguez",
+                    cliente_telefono: "987-654-321",
+                    servicio: "Corte y barba",
+                    peluquero: "Alejandro",
+                    fecha: "2025-07-01",
+                    hora: "11:30",
+                    estado: "confirmada"
+                },
+                {
+                    id: "3",
+                    cliente_nombre: "Ana Martínez Silva",
+                    cliente_telefono: "555-123-456",
+                    servicio: "Tinte",
+                    peluquero: "Adrián",
+                    fecha: "2025-07-01",
+                    hora: "14:00",
+                    estado: "en_proceso"
+                },
+                {
+                    id: "4",
+                    cliente_nombre: "Carlos López Fernández",
+                    cliente_telefono: "777-888-999",
+                    servicio: "Peinado",
+                    peluquero: "Andrés",
+                    fecha: "2025-07-02",
+                    hora: "09:30",
+                    estado: "confirmada"
+                }
+            ],
+            proveedores: [
+                {
+                    id: "1",
+                    nombre: "Distribuidora Belleza S.L.",
+                    contacto: "Ana López",
+                    telefono: "600-123-456",
+                    email: "ana@distribuidora.com",
+                    categoria: "Productos capilares"
+                },
+                {
+                    id: "2",
+                    nombre: "Suministros Peluquería Pro",
+                    contacto: "Miguel Torres",
+                    telefono: "650-789-123",
+                    email: "miguel@suministros.com",
+                    categoria: "Herramientas"
+                },
+                {
+                    id: "3",
+                    nombre: "Color & Style Distribución",
+                    contacto: "Laura Sánchez",
+                    telefono: "680-456-789",
+                    email: "laura@colorstyle.com",
+                    categoria: "Tintes y coloración"
+                }
+            ],
+            gastos: [
+                {
+                    id: "1",
+                    concepto: "Compra shampoos premium",
+                    categoria: "Productos",
+                    monto: 245.50,
+                    fecha: "2025-07-01",
+                    metodo_pago: "transferencia",
+                    proveedor: "Distribuidora Belleza S.L."
+                },
+                {
+                    id: "2",
+                    concepto: "Nómina julio",
+                    categoria: "Sueldos",
+                    monto: 3800.00,
+                    fecha: "2025-07-01",
+                    metodo_pago: "transferencia",
+                    proveedor: "N/A"
+                },
+                {
+                    id: "3",
+                    concepto: "Tijeras profesionales",
+                    categoria: "Herramientas",
+                    monto: 180.00,
+                    fecha: "2025-06-30",
+                    metodo_pago: "tarjeta",
+                    proveedor: "Suministros Peluquería Pro"
+                }
+            ],
+            inventario: [
+                {
+                    id: "1",
+                    nombre: "Shampoo Professional",
+                    categoria: "Cuidado capilar",
+                    stock_actual: 5,
+                    stock_minimo: 10,
+                    precio_compra: 12.50,
+                    precio_venta: 25.00,
+                    proveedor: "Distribuidora Belleza S.L."
+                },
+                {
+                    id: "2",
+                    nombre: "Tinte L'Oréal Majirel",
+                    categoria: "Coloración",
+                    stock_actual: 15,
+                    stock_minimo: 8,
+                    precio_compra: 8.90,
+                    precio_venta: 18.00,
+                    proveedor: "Color & Style Distribución"
+                },
+                {
+                    id: "3",
+                    nombre: "Tijeras Jaguar",
+                    categoria: "Herramientas",
+                    stock_actual: 2,
+                    stock_minimo: 3,
+                    precio_compra: 90.00,
+                    precio_venta: 180.00,
+                    proveedor: "Suministros Peluquería Pro"
+                },
+                {
+                    id: "4",
+                    nombre: "Acondicionador Reparador",
+                    categoria: "Cuidado capilar",
+                    stock_actual: 1,
+                    stock_minimo: 5,
+                    precio_compra: 15.20,
+                    precio_venta: 30.00,
+                    proveedor: "Distribuidora Belleza S.L."
+                }
+            ],
+            empleados: [
+                {
+                    id: "1",
+                    nombre: "Andrés Martínez González",
+                    telefono: "666-111-222",
+                    email: "andres@peluqueria.com",
+                    puesto: "Peluquero Senior",
+                    salario: 1650.00,
+                    estado: "activo",
+                    fecha_ingreso: "2020-03-15",
+                    comision_porcentaje: 15
+                },
+                {
+                    id: "2",
+                    nombre: "Alejandro Ruiz Moreno",
+                    telefono: "666-333-444",
+                    email: "alejandro@peluqueria.com",
+                    puesto: "Peluquero Especialista",
+                    salario: 1450.00,
+                    estado: "activo",
+                    fecha_ingreso: "2021-06-10",
+                    comision_porcentaje: 12
+                },
+                {
+                    id: "3",
+                    nombre: "Adrián García Jiménez",
+                    telefono: "666-555-666",
+                    email: "adrian@peluqueria.com",
+                    puesto: "Colorista Experto",
+                    salario: 1550.00,
+                    estado: "activo",
+                    fecha_ingreso: "2019-09-20",
+                    comision_porcentaje: 18
+                }
+            ]
+        };
+
+        const servicios = [
+            { nombre: "Corte de cabello", precio: 15, duracion: 30 },
+            { nombre: "Corte mujer", precio: 25, duracion: 45 },
+            { nombre: "Arreglo de barba", precio: 10, duracion: 20 },
+            { nombre: "Tinte", precio: 45, duracion: 90 },
+            { nombre: "Mechas", precio: 60, duracion: 120 },
+            { nombre: "Peinado", precio: 20, duracion: 30 }
+        ];
+
+        function App() {
+            const [view, setView] = useState('client');
+            const [activeTab, setActiveTab] = useState('dashboard');
+            const [isLoaded, setIsLoaded] = useState(false);
+
+            useEffect(() => {
+                // Simular carga
+                setTimeout(() => {
+                    setIsLoaded(true);
+                    document.getElementById('loading').style.display = 'none';
+                }, 1500);
+            }, []);
+
+            const ClientView = () => (
+                <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+                    {/* Navegación */}
+                    <nav className="bg-white/95 backdrop-blur-sm shadow-lg sticky top-0 z-40">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <div className="flex justify-between items-center h-16">
+                                <div className="flex items-center space-x-3">
+                                    <span className="text-3xl">🏪</span>
+                                    <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                                        Peluquería Deluxe
+                                    </h1>
+                                </div>
+                                <button 
+                                    onClick={() => setView('admin')}
+                                    className="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white px-6 py-2 rounded-full transition duration-300 transform hover:scale-105 shadow-lg"
+                                >
+                                    🔧 Panel Admin
+                                </button>
+                            </div>
+                        </div>
+                    </nav>
+
+                    {/* Hero Section */}
+                    <div className="relative overflow-hidden">
+                        <div className="hero-gradient py-20 lg:py-32">
+                            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                                <div className="text-center text-white">
+                                    <h1 className="text-5xl lg:text-7xl font-bold mb-6 tracking-tight">
+                                        Peluquería <span className="text-yellow-300">Élite</span>
+                                    </h1>
+                                    <p className="text-xl lg:text-2xl mb-8 opacity-90">
+                                        Tu estilo, nuestra pasión ✨
+                                    </p>
+                                    <div className="flex flex-wrap justify-center gap-4 mb-12 text-lg">
+                                        <span className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">👨‍🦲 Andrés</span>
+                                        <span className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">✂️ Alejandro</span>
+                                        <span className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">💇‍♂️ Adrián</span>
+                                    </div>
+                                    <button className="bg-white text-purple-600 px-8 py-4 rounded-full text-lg font-semibold hover:bg-gray-100 transition duration-300 transform hover:scale-105 shadow-xl">
+                                        📅 Reservar Cita Online
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Servicios */}
+                    <div className="py-20 px-4">
+                        <div className="max-w-7xl mx-auto">
+                            <div className="text-center mb-16">
+                                <h2 className="text-4xl font-bold text-gray-800 mb-4">Nuestros Servicios</h2>
+                                <p className="text-xl text-gray-600">Calidad profesional en cada servicio</p>
+                            </div>
+                            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                {servicios.map((servicio, index) => (
+                                    <div key={index} className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition duration-300 card-hover border border-gray-100">
+                                        <div className="text-center">
+                                            <div className="text-4xl mb-4">
+                                                {servicio.nombre.includes('Corte') ? '✂️' : 
+                                                 servicio.nombre.includes('barba') ? '🧔' :
+                                                 servicio.nombre.includes('Tinte') ? '🎨' :
+                                                 servicio.nombre.includes('Mechas') ? '✨' : '💇'}
+                                            </div>
+                                            <h3 className="text-xl font-semibold mb-3 text-gray-800">{servicio.nombre}</h3>
+                                            <p className="text-gray-600 mb-4">{servicio.duracion} minutos</p>
+                                            <p className="text-3xl font-bold text-blue-600">{servicio.precio}€</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Información adicional */}
+                    <div className="bg-gray-900 text-white py-16">
+                        <div className="max-w-6xl mx-auto px-4 text-center">
+                            <h2 className="text-3xl font-bold mb-12">Información</h2>
+                            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                <div className="bg-gray-800 rounded-xl p-6">
+                                    <div className="text-3xl mb-4">🕒</div>
+                                    <h3 className="text-xl font-semibold mb-3">Horarios</h3>
+                                    <p>Lunes a Viernes: 10:00 - 19:00</p>
+                                    <p>Sábados: 10:00 - 14:00</p>
+                                </div>
+                                <div className="bg-gray-800 rounded-xl p-6">
+                                    <div className="text-3xl mb-4">📍</div>
+                                    <h3 className="text-xl font-semibold mb-3">Ubicación</h3>
+                                    <p>Calle Principal, 123</p>
+                                    <p>28001 Madrid</p>
+                                </div>
+                                <div className="bg-gray-800 rounded-xl p-6">
+                                    <div className="text-3xl mb-4">📞</div>
+                                    <h3 className="text-xl font-semibold mb-3">Contacto</h3>
+                                    <p>91 123 45 67</p>
+                                    <p>info@peluqueriadeluxe.com</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            const AdminView = () => (
+                <div className="min-h-screen bg-gray-50">
+                    {/* Navegación Admin */}
+                    <nav className="bg-white shadow-sm">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <div className="flex justify-between items-center h-16">
+                                <div className="flex items-center space-x-3">
+                                    <span className="text-3xl">🔧</span>
+                                    <h1 className="text-2xl font-bold text-gray-800">Panel de Administración</h1>
+                                </div>
+                                <button 
+                                    onClick={() => setView('client')}
+                                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full transition duration-300 transform hover:scale-105"
+                                >
+                                    ← Volver al Cliente
+                                </button>
+                            </div>
+                        </div>
+                    </nav>
+
+                    {/* Tabs */}
+                    <div className="bg-white border-b border-gray-200">
+                        <div className="max-w-7xl mx-auto">
+                            <nav className="flex space-x-8 px-4 overflow-x-auto">
+                                {[
+                                    { id: 'dashboard', name: 'Dashboard', icon: '📊' },
+                                    { id: 'reservas', name: 'Reservas', icon: '📅' },
+                                    { id: 'proveedores', name: 'Proveedores', icon: '🏢' },
+                                    { id: 'gastos', name: 'Gastos', icon: '💰' },
+                                    { id: 'inventario', name: 'Inventario', icon: '📦' },
+                                    { id: 'empleados', name: 'Empleados', icon: '👥' }
+                                ].map((tab) => (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => setActiveTab(tab.id)}
+                                        className={`flex items-center space-x-2 py-4 px-3 border-b-2 font-medium text-sm whitespace-nowrap transition duration-200 ${
+                                            activeTab === tab.id
+                                                ? 'border-blue-500 text-blue-600'
+                                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                        }`}
+                                    >
+                                        <span>{tab.icon}</span>
+                                        <span>{tab.name}</span>
+                                    </button>
+                                ))}
+                            </nav>
+                        </div>
+                    </div>
+
+                    {/* Contenido */}
+                    <div className="max-w-7xl mx-auto p-6">
+                        {activeTab === 'dashboard' && <DashboardTab />}
+                        {activeTab === 'reservas' && <ReservasTab />}
+                        {activeTab === 'proveedores' && <ProveedoresTab />}
+                        {activeTab === 'gastos' && <GastosTab />}
+                        {activeTab === 'inventario' && <InventarioTab />}
+                        {activeTab === 'empleados' && <EmpleadosTab />}
+                    </div>
+                </div>
+            );
+
+            const DashboardTab = () => (
+                <div className="space-y-8">
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-3xl font-bold text-gray-800">Dashboard Principal</h2>
+                        <div className="text-sm text-gray-500">
+                            Última actualización: {new Date().toLocaleString('es-ES')}
+                        </div>
+                    </div>
+                    
+                    {/* Estadísticas principales */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {[
+                            { title: 'Reservas Hoy', value: mockData.estadisticas.reservas_hoy, icon: '📅', color: 'blue', suffix: '' },
+                            { title: 'Ingresos Hoy', value: mockData.estadisticas.ingresos_hoy, icon: '💰', color: 'green', suffix: '€' },
+                            { title: 'Gastos Mes', value: mockData.estadisticas.gastos_mes, icon: '📉', color: 'red', suffix: '€' },
+                            { title: 'Stock Bajo', value: mockData.estadisticas.productos_bajo_stock, icon: '⚠️', color: 'yellow', suffix: '' },
+                            { title: 'Empleados', value: mockData.estadisticas.empleados_activos, icon: '👥', color: 'purple', suffix: '' },
+                            { title: 'Ganancia Mes', value: mockData.estadisticas.ganancia_mes, icon: '📈', color: 'indigo', suffix: '€' }
+                        ].map((stat, index) => (
+                            <div key={index} className="bg-white p-6 rounded-xl shadow-lg border border-gray-100 hover:shadow-xl transition duration-300">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm text-gray-600 mb-1">{stat.title}</p>
+                                        <p className="text-3xl font-bold text-gray-800">
+                                            {stat.value.toLocaleString('es-ES')}{stat.suffix}
+                                        </p>
+                                    </div>
+                                    <div className={`p-3 bg-${stat.color}-100 rounded-lg`}>
+                                        <span className="text-2xl">{stat.icon}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Alertas y resumen */}
+                    <div className="grid lg:grid-cols-2 gap-6">
+                        <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-6">
+                            <h3 className="font-bold text-yellow-800 mb-4 flex items-center">
+                                <span className="mr-2">⚠️</span>
+                                Alertas del Sistema
+                            </h3>
+                            <ul className="text-yellow-700 space-y-2">
+                                <li>• {mockData.estadisticas.productos_bajo_stock} productos necesitan reposición</li>
+                                <li>• Próximo pago de nóminas en 5 días</li>
+                                <li>• Cita de mantenimiento programada para mañana</li>
+                            </ul>
+                        </div>
+
+                        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-6">
+                            <h3 className="font-bold text-green-800 mb-4 flex items-center">
+                                <span className="mr-2">✅</span>
+                                Resumen del Día
+                            </h3>
+                            <ul className="text-green-700 space-y-2">
+                                <li>• {mockData.reservas.length} citas programadas</li>
+                                <li>• {mockData.estadisticas.ingresos_hoy}€ en ingresos esperados</li>
+                                <li>• 3 peluqueros disponibles</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            const ReservasTab = () => (
+                <div className="space-y-6">
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-2xl font-bold text-gray-800">Gestión de Reservas</h2>
+                        <button className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition duration-200 flex items-center space-x-2">
+                            <span>+</span>
+                            <span>Nueva Reserva</span>
+                        </button>
+                    </div>
+                    
+                    <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full">
+                                <thead className="bg-gray-50">
+                                    <tr>
+                                        {['Cliente', 'Servicio', 'Peluquero', 'Fecha/Hora', 'Estado', 'Acciones'].map((header) => (
+                                            <th key={header} className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                {header}
+                                            </th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-200">
+                                    {mockData.reservas.map((reserva) => (
+                                        <tr key={reserva.id} className="hover:bg-gray-50 transition duration-150">
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div>
+                                                    <div className="text-sm font-medium text-gray-900">{reserva.cliente_nombre}</div>
+                                                    <div className="text-sm text-gray-500">{reserva.cliente_telefono}</div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{reserva.servicio}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{reserva.peluquero}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                <div>{reserva.fecha}</div>
+                                                <div className="font-semibold">{reserva.hora}</div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                                    reserva.estado === 'confirmada' ? 'bg-green-100 text-green-800' :
+                                                    reserva.estado === 'en_proceso' ? 'bg-blue-100 text-blue-800' :
+                                                    'bg-gray-100 text-gray-800'
+                                                }`}>
+                                                    {reserva.estado.replace('_', ' ')}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                                <button className="text-blue-600 hover:text-blue-900 transition duration-150">Editar</button>
+                                                <button className="text-red-600 hover:text-red-900 transition duration-150">Cancelar</button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            const ProveedoresTab = () => (
+                <div className="space-y-6">
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-2xl font-bold text-gray-800">Gestión de Proveedores</h2>
+                        <button className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition duration-200 flex items-center space-x-2">
+                            <span>+</span>
+                            <span>Nuevo Proveedor</span>
+                        </button>
+                    </div>
+                    
+                    <div className="grid gap-6">
+                        {mockData.proveedores.map((proveedor) => (
+                            <div key={proveedor.id} className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition duration-300">
+                                <div className="flex justify-between items-start">
+                                    <div className="flex-1">
+                                        <h3 className="text-xl font-semibold text-gray-800 mb-2">{proveedor.nombre}</h3>
+                                        <div className="grid md:grid-cols-2 gap-4">
+                                            <div>
+                                                <p className="text-sm text-gray-600">Contacto: <span className="text-gray-800 font-medium">{proveedor.contacto}</span></p>
+                                                <p className="text-sm text-gray-600">Teléfono: <span className="text-gray-800 font-medium">{proveedor.telefono}</span></p>
+                                            </div>
+                                            <div>
+                                                <p className="text-sm text-gray-600">Email: <span className="text-gray-800 font-medium">{proveedor.email}</span></p>
+                                                <p className="text-sm text-gray-600">Categoría: <span className="text-blue-600 font-medium">{proveedor.categoria}</span></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="flex space-x-2 ml-4">
+                                        <button className="text-blue-600 hover:text-blue-800 px-3 py-1 rounded transition duration-150">Editar</button>
+                                        <button className="text-red-600 hover:text-red-800 px-3 py-1 rounded transition duration-150">Eliminar</button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+
+            const GastosTab = () => (
+                <div className="space-y-6">
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-2xl font-bold text-gray-800">Control de Gastos</h2>
+                        <button className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition duration-200 flex items-center space-x-2">
+                            <span>+</span>
+                            <span>Registrar Gasto</span>
+                        </button>
+                    </div>
+                    
+                    <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full">
+                                <thead className="bg-gray-50">
+                                    <tr>
+                                        {['Concepto', 'Categoría', 'Monto', 'Fecha', 'Método', 'Proveedor', 'Acciones'].map((header) => (
+                                            <th key={header} className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                {header}
+                                            </th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-200">
+                                    {mockData.gastos.map((gasto) => (
+                                        <tr key={gasto.id} className="hover:bg-gray-50 transition duration-150">
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{gasto.concepto}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{gasto.categoria}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-red-600">{gasto.monto.toLocaleString('es-ES')}€</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{gasto.fecha}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 capitalize">{gasto.metodo_pago}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{gasto.proveedor}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                <button className="text-red-600 hover:text-red-900 transition duration-150">Eliminar</button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            const InventarioTab = () => (
+                <div className="space-y-6">
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-2xl font-bold text-gray-800">Gestión de Inventario</h2>
+                        <button className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition duration-200 flex items-center space-x-2">
+                            <span>+</span>
+                            <span>Nuevo Producto</span>
+                        </button>
+                    </div>
+                    
+                    <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full">
+                                <thead className="bg-gray-50">
+                                    <tr>
+                                        {['Producto', 'Categoría', 'Stock', 'Precio Compra', 'Precio Venta', 'Margen', 'Proveedor', 'Acciones'].map((header) => (
+                                            <th key={header} className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                {header}
+                                            </th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-200">
+                                    {mockData.inventario.map((producto) => {
+                                        const margen = ((producto.precio_venta - producto.precio_compra) / producto.precio_compra * 100).toFixed(1);
+                                        const stockBajo = producto.stock_actual <= producto.stock_minimo;
+                                        
+                                        return (
+                                            <tr key={producto.id} className={`hover:bg-gray-50 transition duration-150 ${stockBajo ? 'bg-red-50' : ''}`}>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{producto.nombre}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{producto.categoria}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span className={`text-sm font-semibold ${stockBajo ? 'text-red-600' : 'text-gray-900'}`}>
+                                                        {producto.stock_actual} / {producto.stock_minimo}
+                                                        {stockBajo && <span className="ml-1">⚠️</span>}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{producto.precio_compra}€</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{producto.precio_venta}€</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600">+{margen}%</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{producto.proveedor}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                                    <button className="text-blue-600 hover:text-blue-900 transition duration-150">Editar</button>
+                                                    <button className="text-red-600 hover:text-red-900 transition duration-150">Eliminar</button>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            const EmpleadosTab = () => (
+                <div className="space-y-6">
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-2xl font-bold text-gray-800">Gestión de Empleados</h2>
+                        <button className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition duration-200 flex items-center space-x-2">
+                            <span>+</span>
+                            <span>Nuevo Empleado</span>
+                        </button>
+                    </div>
+                    
+                    <div className="grid gap-6">
+                        {mockData.empleados.map((empleado) => (
+                            <div key={empleado.id} className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition duration-300">
+                                <div className="flex justify-between items-start">
+                                    <div className="flex-1">
+                                        <div className="flex items-center space-x-3 mb-4">
+                                            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                                                <span className="text-xl">👤</span>
+                                            </div>
+                                            <div>
+                                                <h3 className="text-xl font-semibold text-gray-800">{empleado.nombre}</h3>
+                                                <p className="text-blue-600 font-medium">{empleado.puesto}</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="grid md:grid-cols-3 gap-4">
+                                            <div>
+                                                <p className="text-sm text-gray-600">Contacto:</p>
+                                                <p className="text-sm font-medium text-gray-800">{empleado.telefono}</p>
+                                                <p className="text-sm font-medium text-gray-800">{empleado.email}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-sm text-gray-600">Económico:</p>
+                                                <p className="text-sm font-medium text-gray-800">{empleado.salario.toLocaleString('es-ES')}€/mes</p>
+                                                <p className="text-sm font-medium text-green-600">{empleado.comision_porcentaje}% comisión</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-sm text-gray-600">Ingreso:</p>
+                                                <p className="text-sm font-medium text-gray-800">{empleado.fecha_ingreso}</p>
+                                                <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                                    {empleado.estado}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="flex space-x-2 ml-4">
+                                        <button className="text-blue-600 hover:text-blue-800 px-3 py-1 rounded transition duration-150">Editar</button>
+                                        <button className="text-orange-600 hover:text-orange-800 px-3 py-1 rounded transition duration-150">Dar de Baja</button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+
+            if (!isLoaded) return null;
+
+            return view === 'client' ? <ClientView /> : <AdminView />;
+        }
+
+        // Renderizar cuando el DOM esté listo
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>

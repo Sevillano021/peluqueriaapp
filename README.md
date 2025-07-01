@@ -141,6 +141,47 @@ La aplicación estará disponible en: `http://localhost:3000`
 
 Abre directamente el archivo `demo.html` en tu navegador para ver una versión de demostración con datos de ejemplo.
 
+## 🌐 **Demo Online**
+
+### **🚀 GitHub Pages (Producción)**
+La demo está disponible públicamente en:
+**https://tu-usuario.github.io/pelu**
+
+### **📱 Acceso Rápido**
+- **Vista Cliente**: Interfaz principal para reservas
+- **Panel Admin**: Click en "🔧 Panel Admin" para acceder al dashboard completo
+
+### **🔧 Cómo Desplegar en GitHub Pages**
+
+#### **Opción A: Automático (Recomendado)**
+1. **Sube el código a GitHub**:
+   ```bash
+   git add .
+   git commit -m "Deploy: Sistema completo de peluquería"
+   git push origin main
+   ```
+
+2. **Configura GitHub Pages**:
+   - Ve a tu repositorio en GitHub
+   - Settings → Pages
+   - Source: "Deploy from a branch"
+   - Branch: "main" / Folder: "/ (root)"
+   - Save
+
+3. **Accede a tu demo**:
+   - URL: `https://tu-usuario.github.io/nombre-repo`
+   - La demo estará disponible en 2-5 minutos
+
+#### **Opción B: Con archivo index.html**
+Si prefieres usar el archivo `index.html` como página principal:
+```bash
+# Renombrar demo.html a index.html (si no existe)
+mv demo.html index.html
+git add .
+git commit -m "Set index.html as main page"
+git push origin main
+```
+
 ## 📱 **Navegación de la Aplicación**
 
 ### **Rutas Principales**
